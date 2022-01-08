@@ -30,7 +30,7 @@ Start by creating a new 3D Unity Project
   - Add a 2D Vector Composite calling it `Keyboard`, under it's dropdown bind `Up` to `W`, `Down` to `S`, `Left` to `A`, and `Right` to `D`
   - Add a binding setting this to `Left Stick [Gamepad]`
 - Create an action called `Look`, in its properties set its `Action Type` to `Value` and `Control Type` to `Vector 2`, add the following bindings
-  - Add a binding set to `Delta [Mouse]`, in its properties under Processors add `Invert Vector 2` and unctick `Invert X`, and add a `Scale Vector 2` with **15** set on the X and Y, _this will control our mouse look sensitivity_
+  - Add a binding set to `Delta [Mouse]`, in its properties under Processors add `Invert Vector 2` and unctick `Invert X`, and add a `Scale Vector 2` with **50** set on the X and Y, _this will control our mouse look sensitivity_
   - Add a binding set to `Right Stick [Gamepad]`, in its properties under Processors add `Invert Vector 2` and untick `Invert X`, add `Scale Vector 2` setting the X and Y to **300**, and `Stick Deadzone`
 - Create an action called `Ascend`, add the following bindings
   - Add a binding set to `Space [Keyboard]`
@@ -225,5 +225,20 @@ private void FixedUpdate()
         RotateDrone();
     }
 ```
+
+Save the script
+
 ## 4. Setup the scripts on the Drone
 
+Back in Unity select the `Drone` object in the hierarchy, go to the inspector panel and connect the 3 scripts we just created if you haven't already
+
+Then in the `Drone CM Cam Ctrl(Script)` section we need to drag the Drone's `CameraRoot` child object to `CinemachineCamTarget`
+
+The Drone inspector properties should look like below\
+![Drone Root Inspector](https://user-images.githubusercontent.com/79928221/148654654-74b5b736-0553-4afd-bb64-267b7aa14833.png)
+
+## 5. Testing
+
+Run the scene and try out the Drone's movement with the controls set in the `DroneActionMaps` Input Actions asset
+
+![Drone Result](https://user-images.githubusercontent.com/79928221/148655178-4689ad40-b13b-429d-9ab4-c50a0fc80d42.gif)
