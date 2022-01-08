@@ -114,7 +114,7 @@ public bool Descend()
 
 ### Next we can code our Camera control behaviour in the `DroneCMCamCtrl` script
 
-To begin with we need to declare some variables and initiate them in an Awake() method...
+#### To begin with we need to declare some variables and initiate them in an Awake() method...
 ```
 [SerializeField] GameObject cinemachineCamTarget; //Reference for the CameraRoot game object
 [SerializeField] float topClamp = 70; //Camera maximum look up angle
@@ -132,7 +132,7 @@ private void Awake()
   }
 ```
 
-Next lets create a method to rotate the camera based on the input...
+#### Next lets create a method to rotate the camera based on the input...
 ```
 void RotateCamera()
     {
@@ -153,7 +153,7 @@ void RotateCamera()
         return Mathf.Clamp(angle, min, max);
     }
 ```
-Finally add an `Update()` method to execute the `RotateCamera()` method...
+#### Finally add an `Update()` method to execute the `RotateCamera()` method...
 ```
 void Update()
     {
@@ -162,3 +162,68 @@ void Update()
 ```
 
 ### Now lets code the Drone movement in the `ThirdPersonDroneController` script
+
+#### First we need to declare some variables to reference our Drone's components, initiating them in an Awake() method, and properties to control aspects of our Drone's flight movement behaviour...
+```
+    Rigidbody rb; //Reference for the Drone's rigidbody
+    DroneInputCtrl dInput; //Reference for the Drone's input script
+
+    [Header("Flight Properties")]
+    [SerializeField] float horizontalSpeed = 5; //Controls the horizontal flight speed of the Drone
+    [SerializeField] float verticalSpeed = 5; //Controls the vertical flight speed of the Drone
+
+    [Header("Smoothing Properties")]
+    [SerializeField] float turnSmoothTime = 0.3f; //Controls the time it takes to get to a full speed turn and full stop
+    [SerializeField] float speedSmoothTime = 0.3f; //Controls the time it takes to reach full speed and full stop
+
+    float targetHoriSpeed; //Holds the desired horizontal speed for our Drone to reach
+    float targetVertSpeed; //Holds the desired vertical speed for our Drone to reach
+    Transform camT; //Holds the position of the scene camera
+    float turnSmoothVelocity; //Reference for the turn speed smoothing velocity
+    float speedHoriSmoothVelocity; //Reference for the horizontal speed smoothing velocity
+    float speedVertSmoothVelocity; //Reference for the vertical speed smoothing velocity
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody>(); //Finds and initiates the Drone's rigidbody
+        dInput = GetComponent<DroneInputCtrl>(); //Finds and initiates the Drone's input script
+        camT = Camera.main.transform; //Finds and stores the scenes main camera transform
+    }
+```
+
+#### Next we need to develop a method to rotate our Drone based on our camera's position...
+```
+void RotateDrone()
+    {
+        if (dInput.MovementDir() != Vector2.zero) //Check's if there is player input
+        {
+            float targetRotation = Mathf.Atan2(dInput.MovementDir().x, dInput.MovementDir().y) * Mathf.Rad2Deg + camT.eulerAngles.y; //Sets a target rotation for our drone depending on the input direction and the camera's position from the Drone
+            rb.rotation = Quaternion.Euler(Vector3.up * Mathf.SmoothDampAngle(transform.eulerAngles.y, targetRotation, ref turnSmoothVelocity, turnSmoothTime)); //Applies a smoothed rotation to our Drone using the target rotation value
+        }
+    }
+```
+
+#### Now we need to develop a method to control the Drone's movement...
+```
+void MoveDrone()
+    {
+        float inputHoriSpeed = horizontalSpeed * dInput.MovementDir().magnitude; //Multiplies the input with the set horizontal speed, no input = 0, input = 1
+        targetHoriSpeed = Mathf.SmoothDamp(targetHoriSpeed, inputHoriSpeed, ref speedHoriSmoothVelocity, speedSmoothTime); //Smooths the target speed to prevent instant full speed starts and stops
+
+        float inputVertSpeed; //New variable for holding the vertical input direction multiplied by the set vertical speed
+        inputVertSpeed = dInput.Ascend() ? 1 * verticalSpeed : 0; //Checks if the Ascend input is being pressed, if so multiplying the vertical speed by 1 to raise the drone, if false setting to 0 
+        inputVertSpeed = dInput.Descend() ? (-1 * verticalSpeed) + inputVertSpeed : 0 + inputVertSpeed; //Checks if the Descend input is being pressed, if so multiplying the vertical speed by -1 to lower the drone, adding the previous value set by the Ascend input, if false setting to 0 again adding the previous value set by the Ascend input
+        targetVertSpeed = Mathf.SmoothDamp(targetVertSpeed, inputVertSpeed, ref speedVertSmoothVelocity, speedSmoothTime); //Sets the target vertical speed from the calculated vertical input with smoothing 
+
+        rb.velocity = new Vector3(transform.forward.x * targetHoriSpeed, targetVertSpeed, transform.forward.z * targetHoriSpeed); //Sets the target vertical speed to the Drone's rigidbody velocity
+    }
+```
+#### With the Drone movement methods complete we need to call them in a FixedUpdate() method
+```
+private void FixedUpdate()
+    {
+        MoveDrone();
+        RotateDrone();
+    }
+```
+## 4. Setup the scripts on the Drone
+
