@@ -211,7 +211,7 @@ void MoveDrone()
 
         float inputVertSpeed; //New variable for holding the vertical input direction multiplied by the set vertical speed
         inputVertSpeed = dInput.Ascend() ? 1 * verticalSpeed : 0; //Checks if the Ascend input is being pressed, if so multiplying the vertical speed by 1 to raise the drone, if false setting to 0 
-        inputVertSpeed = dInput.Descend() ? (-1 * verticalSpeed) + inputVertSpeed : 0 + inputVertSpeed; //Checks if the Descend input is being pressed, if so multiplying the vertical speed by -1 to lower the drone, adding the previous value set by the Ascend input, if false setting to 0 again adding the previous value set by the Ascend input
+        inputVertSpeed += dInput.Descend() ? -1 * verticalSpeed : 0; //Checks if the Descend input is being pressed, if so multiplying the vertical speed by -1 to lower the drone, if false setting to 0, adding on this value to the previous value
         targetVertSpeed = Mathf.SmoothDamp(targetVertSpeed, inputVertSpeed, ref speedVertSmoothVelocity, speedSmoothTime); //Sets the target vertical speed from the calculated vertical input with smoothing 
 
         rb.velocity = new Vector3(transform.forward.x * targetHoriSpeed, targetVertSpeed, transform.forward.z * targetHoriSpeed); //Sets the target vertical speed to the Drone's rigidbody velocity
